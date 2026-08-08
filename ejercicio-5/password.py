@@ -14,7 +14,7 @@ Imprimir un mensaje adecuado al caso.
 
 # Función para validar la contraseña ingresada por el usuario
 def validar_contrasena(contrasena):
-    if len(contrasena) < 8:
+    if len(contrasena) <= 8:
         print("La contraseña debe tener al menos 8 caracteres.")
         return False
     
@@ -26,17 +26,19 @@ def validar_contrasena(contrasena):
         print("La contraseña debe contener al menos una letra minúscula.")
         return False
     
-    print("La contraseña es válida.")
     return True
 
 # Variable para controlar el bucle de validación de la contraseña
-resultado = False
 
-while resultado != True:
-    # Solicitar al usuario que ingrese una contraseña
-    contrasena_usuario = input(">> Ingrese una contraseña: ")
+if __name__ == "__main__": # Con esto evitamos que el código se ejecute si se importa este archivo como módulo
+    resultado = False
 
-    # Validar la contraseña
-    resultado = validar_contrasena(contrasena_usuario)
+    while resultado != True:
+        # Solicitar al usuario que ingrese una contraseña
+        contrasena_usuario = input(">> Ingrese una contraseña: ")
+
+        # Validar la contraseña
+        resultado = validar_contrasena(contrasena_usuario)
+
 
 
