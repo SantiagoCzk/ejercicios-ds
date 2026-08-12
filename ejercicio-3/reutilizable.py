@@ -26,6 +26,8 @@ class Ubicacion(BaseModel):
     latitud: CoordenadaGPS
     etiqueta: str = Field(max_length=300, default="")
 
+
+# Prueba de las ubicaciones
 try:
     data = {"longitud" : "70", "latitud" : "60", "etiqueta" : "ejemplo de prueba"}
     ubicacion1 = Ubicacion(**data)
