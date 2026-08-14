@@ -31,7 +31,7 @@ class Departamento(Base):
     __tablename__ = "departamentos"
     id: Mapped[int] = mapped_column(primary_key=True)
     nombre: Mapped[str] = mapped_column(String(100))
-    profesores: Mapped[list["Profesor"]] = relationship()
+    profesores: Mapped[list["Profesor"]] = relationship(back_populates="departamento")
 
 # Modelo del profesor
 class Profesor(Base):
@@ -41,6 +41,7 @@ class Profesor(Base):
     email: Mapped[str] = mapped_column(String(100))
     fecha_ingreso: Mapped[datetime] = mapped_column(DateTime)
     departamento_id: Mapped[int] = mapped_column(ForeignKey("departamentos.id"))
+    departamento: Mapped[Departamento] = relationship(back_populates="profesores")
 
 
 if __name__ == "__main__":
@@ -57,9 +58,10 @@ if __name__ == "__main__":
         departamento2 = Departamento(id= 2, nombre="Economia")
             
         profesor1 = Profesor(id= 1, nombre="Juan Perez", email="juan.perez@example.com", fecha_ingreso=datetime(2024, 3, 1), departamento_id= 1)
-        profesor2 = Profesor(id= 2, nombre="Maria Lopez", email="maria.lopez@example.com", fecha_ingreso=datetime(2024, 5, 15), departamento_id= 2)
+        profesor2 = Profesor(id= 2, nombre="Maria Lopez", email="maria.lopez@example.com", fecha_ingreso=datetime(2024, 5, 15), departamento_id= 1)
+        profesor3 = Profesor(id= 3, nombre="Marcos Ruiz", email="marcos@gmail.com",fecha_ingreso=datetime(2024, 6, 20), departamento_id= 1)
         
-        session.add_all([profesor1, profesor2, departamento1, departamento2])
+        session.add_all([profesor1, profesor2, profesor3, departamento1, departamento2])
         session.commit()
 
     # Se muestran los registros por consola
@@ -67,7 +69,7 @@ if __name__ == "__main__":
         print("\nPROFESORES\n")
         profesores = session.scalars(select(Profesor)).all()
         for p in profesores:
-            print(f"ID: {p.id} | Nombre: {p.nombre} | Email: {p.email} | Fecha ingreso: {p.fecha_ingreso}") 
+            print(f"ID: {p.id} | Nombre: {p.nombre} | Email: {p.email} | Fecha ingreso: {p.fecha_ingreso} | Departamento: {p.departamento.nombre}") 
 
         print("\nDEPARTAMENTOS\n")
         departamentos = session.scalars(select(Departamento)).all()
