@@ -1,11 +1,11 @@
 '''
-Ejercicio 4
+Ejercicio 5
 
-Crear el modelo Curso (id, titulo, creditos). 
-Un profesor puede dictar muchos cursos, pero un curso es 
-dictado por un único profesor. 
-Añadir la clave foránea profesor_id en Curso y la relación 
-correspondiente en ambos modelos (Profesor y Curso).
+Crea el modelo Clase (id, tema, duracion_minutos). 
+Un curso se compone de muchas clases. 
+Configurar la relación One-to-Many entre Curso y Clase. 
+Escribir una consulta que devuelva todas las clases de un curso 
+específico a través del ORM.
 
 '''
 
@@ -21,6 +21,13 @@ class Departamento(Base):
     nombre: Mapped[str] = mapped_column(String(100))
     profesores: Mapped[list["Profesor"]] = relationship(back_populates="departamento")
 
+    def __str__(self):
+        cadena = f"\nID: {self.id} | Nombre: {self.nombre} | Profesores: "
+        for p in self.profesores:
+            cadena += f"{p.nombre}, "
+        return cadena
+
+
 # Modelo del profesor
 class Profesor(Base):
     __tablename__ = "profesores"
@@ -32,6 +39,12 @@ class Profesor(Base):
     departamento: Mapped[Departamento] = relationship(back_populates="profesores")
     cursos: Mapped[list["Curso"]] = relationship(back_populates="profesor")
 
+    def __str__(self):
+        cadena = f"\nID: {self.id} | Nombre: {self.nombre} | Email: {self.email} | Fecha ingreso: {self.fecha_ingreso} | Departamento: {p.departamento.nombre} | Cursos: "
+        for c in self.cursos:
+            cadena += f"{c.titulo}, "
+        return cadena
+
 # Modelo de Curso
 class Curso(Base):
     __tablename__ = "cursos"
@@ -40,6 +53,24 @@ class Curso(Base):
     creditos: Mapped[int] = mapped_column(default=0)
     profesor_id: Mapped[int] = mapped_column(ForeignKey("profesores.id"))
     profesor: Mapped[Profesor] = relationship(back_populates="cursos")
+    clases: Mapped[list["Clase"]] = relationship(back_populates="curso")
+
+    def __str__(self):
+        cadena = f"\nID: {self.id} | Titulo: {self.titulo} | Creditos: {self.creditos} | Profesor: {self.profesor.nombre}"
+        return cadena
+
+# Modelo de Clase
+class Clase(Base):
+    __tablename__ = "clases"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    tema: Mapped[str] = mapped_column(String(100))
+    duracion_minutos: Mapped[int] = mapped_column()
+    curso_id: Mapped[int] = mapped_column(ForeignKey("cursos.id"))
+    curso: Mapped[Curso] = relationship(back_populates="clases")
+
+    def __str__(self):
+        cadena = f"ID: {self.id} | Tema: {self.tema} | Duracion(minutos): {self.duracion_minutos} | Curso: {self.curso.titulo}"
+        return cadena
 
 
 if __name__ == "__main__":
@@ -58,10 +89,14 @@ if __name__ == "__main__":
         profesor2 = Profesor(id= 2, nombre="Maria Lopez", email="maria.lopez@example.com", fecha_ingreso=datetime(2024, 5, 15), departamento_id= 2)
         profesor3 = Profesor(id= 3, nombre="Marcos Ruiz", email="marcos@gmail.com",fecha_ingreso=datetime(2024, 6, 20), departamento_id= 1)
 
+        clase1 = Clase(id= 1, tema="Variables", duracion_minutos=120, curso_id=1)
+        clase2 = Clase(id= 2, tema="Funciones", duracion_minutos=180, curso_id=1)
+        clase3 = Clase(id= 3, tema="Procedimientos", duracion_minutos=120, curso_id=1)
+
         curso1 = Curso(id= 1, titulo="Programacion", creditos=20, profesor_id= 1)
         curso2 = Curso(id= 2, titulo="Python", creditos=25, profesor_id= 2)
         
-        session.add_all([profesor1, profesor2, profesor3, departamento1, departamento2, curso1, curso2])
+        session.add_all([profesor1, profesor2, profesor3, departamento1, departamento2, curso1, curso2, clase1, clase2, clase3])
         session.commit()
 
     # Se muestran los registros por consola
@@ -69,21 +104,30 @@ if __name__ == "__main__":
         print("\nPROFESORES")
         profesores = session.scalars(select(Profesor)).all()
         for p in profesores:
-            print(f"\nID: {p.id} | Nombre: {p.nombre} | Email: {p.email} | Fecha ingreso: {p.fecha_ingreso} | Departamento: {p.departamento.nombre} | Cursos: ")
-            for c in p.cursos:
-                print(c.titulo)
+            print(p.__str__())
 
         print("\nDEPARTAMENTOS")
         departamentos = session.scalars(select(Departamento)).all()
         for d in departamentos:
-            print(f"\nID: {d.id} | Nombre: {d.nombre} | Profesores: ")
-            for profe in d.profesores:
-                print(profe.nombre)
+            print(d.__str__())
 
         print("\nCURSOS")
         cursos = session.scalars(select(Curso)).all()
         for curso in cursos:
-            print(f"\nID: {curso.id} | Titulo: {curso.titulo} | Creditos: {curso.creditos} | Profesor: {curso.profesor.nombre}")
+            print(curso.__str__())
+
+        print("\nCLASES DE UN CURSO")
+        curso = session.scalar(select(Curso).where(Curso.id == 1))
+        cadena = f"\nCurso: {curso.titulo} | Clases: "
+        for clase in curso.clases:
+            cadena += f"{clase.tema}, "
+        print(cadena)
+
+    
+
+
+
+
 
 
 
