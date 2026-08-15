@@ -1,11 +1,11 @@
 '''
-Ejercicio 6
+Ejercicio 7
 
-Crear el modelo Estudiante (id, nombre, legajo). Como un 
-estudiante cursa muchas materias y una materia tiene muchos 
-alumnos, definir la tabla asociativa llamada Inscripcion para 
-conectar Estudiantes y Cursos. 
-Inscribir alumnos en diferentes cursos.
+Transformar la tabla asociativa anterior para añadir los atributos  
+fecha_inscripcion y calificacion_final. 
+Modificar las relaciones en Estudiante y Curso utilizando 
+secondary o mapeo directo para mantener la relación 
+Many-to-Many enriquecida.
 
 '''
 
@@ -92,6 +92,8 @@ class Inscripcion(Base):
     estudiante: Mapped[Estudiante] = relationship(back_populates="inscripciones")
     curso_id: Mapped[int] = mapped_column(ForeignKey("cursos.id"))
     curso: Mapped[Curso] = relationship(back_populates="inscripciones")
+    fecha_inscripcion: Mapped[datetime] = mapped_column(DateTime)
+    calificacion_final: Mapped[int] = mapped_column()
 
     def __str__(self):
         return super().__str__()
@@ -125,9 +127,9 @@ if __name__ == "__main__":
         curso1 = Curso(id= 1, titulo="Programacion", creditos=20, profesor_id= 1)
         curso2 = Curso(id= 2, titulo="Python", creditos=25, profesor_id= 2)
         
-        inscripcion1 = Inscripcion(id= 1, estudiante_id=1, curso_id=1)
-        inscripcion2 = Inscripcion(id= 2, estudiante_id=2, curso_id=1)
-        inscripcion3 = Inscripcion(id= 3, estudiante_id=3, curso_id=2)
+        inscripcion1 = Inscripcion(id= 1, estudiante_id=1, curso_id=1, fecha_inscripcion=datetime(2024, 5, 5), calificacion_final=6)
+        inscripcion2 = Inscripcion(id= 2, estudiante_id=2, curso_id=1, fecha_inscripcion=datetime(2024, 5, 6), calificacion_final=7)
+        inscripcion3 = Inscripcion(id= 3, estudiante_id=3, curso_id=2, fecha_inscripcion=datetime(2024, 5, 7), calificacion_final=4)
 
         session.add_all([profesor1, profesor2, profesor3, departamento1, departamento2, curso1, curso2, clase1, 
                          clase2, clase3, estudiante1, estudiante2, estudiante3, inscripcion1, inscripcion2, inscripcion3])
