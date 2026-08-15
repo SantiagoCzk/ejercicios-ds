@@ -1,11 +1,11 @@
 '''
-Ejercicio 5
+Ejercicio 6
 
-Crea el modelo Clase (id, tema, duracion_minutos). 
-Un curso se compone de muchas clases. 
-Configurar la relación One-to-Many entre Curso y Clase. 
-Escribir una consulta que devuelva todas las clases de un curso 
-específico a través del ORM.
+Crear el modelo Estudiante (id, nombre, legajo). Como un 
+estudiante cursa muchas materias y una materia tiene muchos 
+alumnos, definir la tabla asociativa llamada Inscripcion para 
+conectar Estudiantes y Cursos. 
+Inscribir alumnos en diferentes cursos.
 
 '''
 
@@ -54,6 +54,7 @@ class Curso(Base):
     profesor_id: Mapped[int] = mapped_column(ForeignKey("profesores.id"))
     profesor: Mapped[Profesor] = relationship(back_populates="cursos")
     clases: Mapped[list["Clase"]] = relationship(back_populates="curso")
+    inscripciones: Mapped[list["Inscripcion"]] = relationship(back_populates="curso")
 
     def __str__(self):
         cadena = f"\nID: {self.id} | Titulo: {self.titulo} | Creditos: {self.creditos} | Profesor: {self.profesor.nombre}"
@@ -72,6 +73,30 @@ class Clase(Base):
         cadena = f"ID: {self.id} | Tema: {self.tema} | Duracion(minutos): {self.duracion_minutos} | Curso: {self.curso.titulo}"
         return cadena
 
+# Modelo de Estudiante
+class Estudiante(Base):
+    __tablename__ = "estudiantes"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    nombre: Mapped[str] = mapped_column(String(100))
+    legajo: Mapped[int] = mapped_column()
+    inscripciones: Mapped[list["Inscripcion"]] = relationship(back_populates="estudiante")
+
+    def __str__(self):
+        return super().__str__()
+
+# Modelo de Inscripcion
+class Inscripcion(Base):
+    __tablename__ = "incripciones"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    estudiante_id: Mapped[int] = mapped_column(ForeignKey("estudiantes.id"))
+    estudiante: Mapped[Estudiante] = relationship(back_populates="inscripciones")
+    curso_id: Mapped[int] = mapped_column(ForeignKey("cursos.id"))
+    curso: Mapped[Curso] = relationship(back_populates="inscripciones")
+
+    def __str__(self):
+        return super().__str__()
+
+
 
 if __name__ == "__main__":
     # Se crean las tablas en la base de datos
@@ -89,6 +114,10 @@ if __name__ == "__main__":
         profesor2 = Profesor(id= 2, nombre="Maria Lopez", email="maria.lopez@example.com", fecha_ingreso=datetime(2024, 5, 15), departamento_id= 2)
         profesor3 = Profesor(id= 3, nombre="Marcos Ruiz", email="marcos@gmail.com",fecha_ingreso=datetime(2024, 6, 20), departamento_id= 1)
 
+        estudiante1 = Estudiante(id= 1, nombre="Santiago Breczko", legajo=1004)
+        estudiante2 = Estudiante(id= 2, nombre="Mateo Ruiz", legajo=1212)
+        estudiante3 = Estudiante(id= 3, nombre="Tiziano Valentino", legajo=1111)
+
         clase1 = Clase(id= 1, tema="Variables", duracion_minutos=120, curso_id=1)
         clase2 = Clase(id= 2, tema="Funciones", duracion_minutos=180, curso_id=1)
         clase3 = Clase(id= 3, tema="Procedimientos", duracion_minutos=120, curso_id=1)
@@ -96,7 +125,12 @@ if __name__ == "__main__":
         curso1 = Curso(id= 1, titulo="Programacion", creditos=20, profesor_id= 1)
         curso2 = Curso(id= 2, titulo="Python", creditos=25, profesor_id= 2)
         
-        session.add_all([profesor1, profesor2, profesor3, departamento1, departamento2, curso1, curso2, clase1, clase2, clase3])
+        inscripcion1 = Inscripcion(id= 1, estudiante_id=1, curso_id=1)
+        inscripcion2 = Inscripcion(id= 2, estudiante_id=2, curso_id=1)
+        inscripcion3 = Inscripcion(id= 3, estudiante_id=3, curso_id=2)
+
+        session.add_all([profesor1, profesor2, profesor3, departamento1, departamento2, curso1, curso2, clase1, 
+                         clase2, clase3, estudiante1, estudiante2, estudiante3, inscripcion1, inscripcion2, inscripcion3])
         session.commit()
 
     # Se muestran los registros por consola
