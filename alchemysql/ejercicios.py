@@ -1,17 +1,17 @@
 '''
-Ejercicio 7
+Ejercicio 8
 
-Transformar la tabla asociativa anterior para añadir los atributos  
-fecha_inscripcion y calificacion_final. 
-Modificar las relaciones en Estudiante y Curso utilizando 
-secondary o mapeo directo para mantener la relación 
-Many-to-Many enriquecida.
-
+Escribir consultas utilizando las herramientas de SQLAlchemy 
+para resolver los siguientes reportes:
+    ● Listar todos los cursos que dicta un profesor específico usando join.
+    ● Obtener el promedio de calificaciones de un estudiante en particular 
+    utilizando funciones de agregación (func.avg).
+    ● Contar cuántos estudiantes hay inscriptos en cada curso(func.count).
 '''
 
 from conexionDB import Base, engine
 from sqlalchemy.orm import Mapped, mapped_column, Session, relationship
-from sqlalchemy import DateTime, String, select, ForeignKey
+from sqlalchemy import DateTime, String, select, ForeignKey, func
 from datetime import datetime
 
 # Modelo de departamento
@@ -125,11 +125,11 @@ if __name__ == "__main__":
         clase3 = Clase(id= 3, tema="Procedimientos", duracion_minutos=120, curso_id=1)
 
         curso1 = Curso(id= 1, titulo="Programacion", creditos=20, profesor_id= 1)
-        curso2 = Curso(id= 2, titulo="Python", creditos=25, profesor_id= 2)
+        curso2 = Curso(id= 2, titulo="Python", creditos=25, profesor_id= 1)
         
         inscripcion1 = Inscripcion(id= 1, estudiante_id=1, curso_id=1, fecha_inscripcion=datetime(2024, 5, 5), calificacion_final=6)
         inscripcion2 = Inscripcion(id= 2, estudiante_id=2, curso_id=1, fecha_inscripcion=datetime(2024, 5, 6), calificacion_final=7)
-        inscripcion3 = Inscripcion(id= 3, estudiante_id=3, curso_id=2, fecha_inscripcion=datetime(2024, 5, 7), calificacion_final=4)
+        inscripcion3 = Inscripcion(id= 3, estudiante_id=1, curso_id=2, fecha_inscripcion=datetime(2024, 5, 7), calificacion_final=4)
 
         session.add_all([profesor1, profesor2, profesor3, departamento1, departamento2, curso1, curso2, clase1, 
                          clase2, clase3, estudiante1, estudiante2, estudiante3, inscripcion1, inscripcion2, inscripcion3])
@@ -158,6 +158,31 @@ if __name__ == "__main__":
         for clase in curso.clases:
             cadena += f"{clase.tema}, "
         print(cadena)
+
+        print("\nCURSOS QUE DICTA UN PROFESOR")
+        profesor = session.scalar(select(Profesor).where(Profesor.id == 1))
+        cursos_profesor = session.scalars(select(Curso).join(Profesor).where(Profesor.id == profesor.id)).all()
+
+        cadena = f"\n> Profesor: {profesor.nombre} | Cursos que dicta: "
+        for curso in cursos_profesor:
+            cadena += f"{curso.titulo}, "
+        print(cadena)  
+
+        print("\nPROMEDIO DE CALIFICACION DE UN ESTUDIANTE")
+        estudiante = session.scalar(select(Estudiante).where(Estudiante.legajo == 1004))
+        promedio_estudiante = session.scalar(select(func.avg(Inscripcion.calificacion_final)).join(Estudiante).where(Estudiante.id == estudiante.id))
+
+        print(f"\n> Promedio del estudiante {estudiante.nombre} es: {promedio_estudiante}")
+
+        print("\nCANTIDAD DE ESTUDIANTES ANOTADOS POR CURSO")
+        inscriptos_curso = session.execute(select(Curso.titulo, func.count(Inscripcion.id)).join(Inscripcion).group_by(Curso.id))
+
+        print("\n>> Estudiantes anotados por curso: ")
+        for titulo, cant in inscriptos_curso:
+            print(f"    > {titulo}: {cant}")
+
+
+
 
     
 
