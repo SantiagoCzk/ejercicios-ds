@@ -1,12 +1,15 @@
 '''
-Ejercicio 8
+Ejercicio 9
 
-Escribir consultas utilizando las herramientas de SQLAlchemy 
-para resolver los siguientes reportes:
-    ● Listar todos los cursos que dicta un profesor específico usando join.
-    ● Obtener el promedio de calificaciones de un estudiante en particular 
-    utilizando funciones de agregación (func.avg).
-    ● Contar cuántos estudiantes hay inscriptos en cada curso(func.count).
+Implementar una función de negocio transaccional (por ejemplo, 
+"Matricular alumno") dentro de un bloque try-except. 
+
+Si ocurre un error lógico o de integridad (como intentar inscribir a 
+un alumno dos veces al mismo curso), invocar session.rollback() 
+y capturar la excepción para cerrar la sesión de forma segura.
+
+Crear las instancias requeridas para forzar la excepción. Verificar 
+manualmente que el rollback ocurrió como se esperaba.
 '''
 
 from conexionDB import Base, engine
@@ -82,8 +85,7 @@ class Estudiante(Base):
     inscripciones: Mapped[list["Inscripcion"]] = relationship(back_populates="estudiante")
 
     def __str__(self):
-        return super().__str__()
-
+        return f"\n> ID: {self.id} | Nombre: {self.nombre} | Legajo: {self.legajo}"
 # Modelo de Inscripcion
 class Inscripcion(Base):
     __tablename__ = "incripciones"
@@ -97,7 +99,6 @@ class Inscripcion(Base):
 
     def __str__(self):
         return super().__str__()
-
 
 
 if __name__ == "__main__":
@@ -127,9 +128,9 @@ if __name__ == "__main__":
         curso1 = Curso(id= 1, titulo="Programacion", creditos=20, profesor_id= 1)
         curso2 = Curso(id= 2, titulo="Python", creditos=25, profesor_id= 1)
         
-        inscripcion1 = Inscripcion(id= 1, estudiante_id=1, curso_id=1, fecha_inscripcion=datetime(2024, 5, 5), calificacion_final=6)
-        inscripcion2 = Inscripcion(id= 2, estudiante_id=2, curso_id=1, fecha_inscripcion=datetime(2024, 5, 6), calificacion_final=7)
-        inscripcion3 = Inscripcion(id= 3, estudiante_id=1, curso_id=2, fecha_inscripcion=datetime(2024, 5, 7), calificacion_final=4)
+        inscripcion1 = Inscripcion(estudiante_id=1, curso_id=1, fecha_inscripcion=datetime(2024, 5, 5), calificacion_final=6)
+        inscripcion2 = Inscripcion(estudiante_id=2, curso_id=1, fecha_inscripcion=datetime(2024, 5, 6), calificacion_final=7)
+        inscripcion3 = Inscripcion(estudiante_id=1, curso_id=2, fecha_inscripcion=datetime(2024, 5, 7), calificacion_final=4)
 
         session.add_all([profesor1, profesor2, profesor3, departamento1, departamento2, curso1, curso2, clase1, 
                          clase2, clase3, estudiante1, estudiante2, estudiante3, inscripcion1, inscripcion2, inscripcion3])
@@ -180,6 +181,40 @@ if __name__ == "__main__":
         print("\n>> Estudiantes anotados por curso: ")
         for titulo, cant in inscriptos_curso:
             print(f"    > {titulo}: {cant}")
+
+        print("\nFUNCION TRASACCIONAL - INSCRIPCION ALUMNO A UN CURSO")
+        try:
+            # Valores Harcodeados
+            legajo_estudiante = 1004
+            id_curso = 1
+
+            estudiante = session.scalar(select(Estudiante).where(Estudiante.legajo == legajo_estudiante))
+            if not estudiante:
+                raise ValueError(f"El estudiante con legajo {legajo_estudiante} no existe.")
+
+            curso = session.scalar(select(Curso).where(Curso.id == id_curso))
+            if not curso:
+                raise ValueError(f"El curso con ID {id_curso} no existe.")
+
+            inscripcion_existente = session.scalar(select(Inscripcion).where(Inscripcion.estudiante_id == estudiante.id).where(Inscripcion.curso_id == curso.id))
+
+            if inscripcion_existente:
+                raise ValueError(f"Error de Integridad: El estudiante {estudiante.nombre} ya está inscripto en '{curso.titulo}'.")
+
+            nueva_inscripcion = Inscripcion(estudiante_id=estudiante.id, curso_id=curso.id, fecha_inscripcion=datetime.now(), calificacion_final=0)
+
+            session.add(nueva_inscripcion)
+            session.commit()
+
+            print(f"\n>> {estudiante.nombre} fue matriculado en '{curso.titulo}'.")
+
+        except ValueError as e:
+            print(f"\n>>> Error Capturado: {e}")
+            print(">> Ejecutando session.rollback()...")
+            session.rollback() # Cancelamos cualquier operación pendiente
+
+        finally:
+            print(">> Transacción finalizada.")
 
 
 
