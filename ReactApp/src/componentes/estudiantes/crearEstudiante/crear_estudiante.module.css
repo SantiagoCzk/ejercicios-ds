@@ -1,0 +1,7 @@
+.formContainer { margin-top: 1rem; background:#fff; padding:1rem; border:1px solid #ddd; }
+.formControl { margin-bottom:.75rem; }
+.label { display:block; margin-bottom:.25rem; }
+.input { width:100%; padding:.5rem; }
+.btn { padding:.5rem 1rem; }
+.msgSuccess { color:#2ecc71; margin-top:.5rem; }
+.msgError   { color:#e74c3c; margin-top:.5rem; }

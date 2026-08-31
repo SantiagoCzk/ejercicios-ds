@@ -1,5 +1,15 @@
-//Pagina principal de Estudiante, la idea es que en este fichero integre los componentes de estudiante
+import MenuFuncionalidad from './menuFuncionalidad/menu_funcionalidad';
+import './index.module.css'
 
 export default function Estudiantes() {
-  return <h2>Estudiantes</h2>;
+  return (
+    <section id="estudiantes">
+      <h1 className=''>Estudiantes</h1>
+
+      {/* Botón + formulario de creación */}
+      <MenuFuncionalidad />
+
+      {/* Resto del contenido de la vista permanece sin tocar */}
+    </section>
+  );
 }
